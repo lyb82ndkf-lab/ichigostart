@@ -2,6 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const path = require('path')
 const { pool } = require('../db')
+const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
 
@@ -17,7 +18,7 @@ const storage = multer.diskStorage({
 })
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /\.(jpg|jpeg|png|gif|svg|webp|ico)$/i
     if (allowed.test(path.extname(file.originalname))) {
@@ -28,15 +29,15 @@ const upload = multer({
   }
 })
 
-// 获取指定分类下的书签
+// 所有路由都需要认证
+router.use(authMiddleware)
+
+// 获取书签
 router.get('/', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: '未登录' })
-  }
   try {
     const { category_id } = req.query
     let sql = 'SELECT * FROM bookmarks WHERE user_id = ?'
-    const params = [req.session.userId]
+    const params = [req.userId]
 
     if (category_id) {
       sql += ' AND category_id = ?'
@@ -54,19 +55,15 @@ router.get('/', async (req, res) => {
 
 // 创建书签
 router.post('/', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: '未登录' })
-  }
   try {
     const { category_id, title, url, icon, description, sort_order } = req.body
     if (!category_id || !title || !url) {
       return res.status(400).json({ error: '分类、标题和网址不能为空' })
     }
 
-    // 验证分类归属
     const [cat] = await pool.execute(
       'SELECT id FROM categories WHERE id = ? AND user_id = ?',
-      [category_id, req.session.userId]
+      [category_id, req.userId]
     )
     if (cat.length === 0) {
       return res.status(400).json({ error: '分类不存在' })
@@ -74,7 +71,7 @@ router.post('/', async (req, res) => {
 
     const [result] = await pool.execute(
       'INSERT INTO bookmarks (category_id, user_id, title, url, icon, description, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [category_id, req.session.userId, title, url, icon || '', description || '', sort_order || 0]
+      [category_id, req.userId, title, url, icon || '', description || '', sort_order || 0]
     )
 
     res.json({
@@ -82,7 +79,7 @@ router.post('/', async (req, res) => {
       bookmark: {
         id: result.insertId, category_id, title, url,
         icon: icon || '', description: description || '',
-        sort_order: sort_order || 0, user_id: req.session.userId
+        sort_order: sort_order || 0, user_id: req.userId
       }
     })
   } catch (err) {
@@ -93,17 +90,13 @@ router.post('/', async (req, res) => {
 
 // 更新书签
 router.put('/:id', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: '未登录' })
-  }
   try {
     const { id } = req.params
     const { title, url, icon, description, sort_order, category_id } = req.body
 
-    // 验证归属
     const [existing] = await pool.execute(
       'SELECT id FROM bookmarks WHERE id = ? AND user_id = ?',
-      [id, req.session.userId]
+      [id, req.userId]
     )
     if (existing.length === 0) {
       return res.status(404).json({ error: '书签不存在' })
@@ -119,7 +112,7 @@ router.put('/:id', async (req, res) => {
     if (category_id !== undefined) { updates.push('category_id = ?'); values.push(category_id) }
 
     if (updates.length > 0) {
-      values.push(id, req.session.userId)
+      values.push(id, req.userId)
       await pool.execute(
         `UPDATE bookmarks SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`,
         values
@@ -135,14 +128,11 @@ router.put('/:id', async (req, res) => {
 
 // 删除书签
 router.delete('/:id', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: '未登录' })
-  }
   try {
     const { id } = req.params
     const [result] = await pool.execute(
       'DELETE FROM bookmarks WHERE id = ? AND user_id = ?',
-      [id, req.session.userId]
+      [id, req.userId]
     )
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: '书签不存在' })
@@ -156,9 +146,6 @@ router.delete('/:id', async (req, res) => {
 
 // 上传图标
 router.post('/upload', upload.single('icon'), (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: '未登录' })
-  }
   if (!req.file) {
     return res.status(400).json({ error: '请选择文件' })
   }

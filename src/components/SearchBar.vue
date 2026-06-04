@@ -54,34 +54,34 @@ export default {
       query: '',
       isFocused: false,
       showEngines: false,
-      currentEngineId: 'baidu',
+      currentEngineId: localStorage.getItem('searchEngine') || 'baidu',
       engines: [
         {
           id: 'baidu',
           name: '百度',
           url: 'https://www.baidu.com/s?wd=',
-          icon: 'https://www.baidu.com/favicon.ico',
+          icon: '/static/serach/baidu.png',
           placeholder: '百度一下...',
         },
         {
           id: 'google',
           name: 'Google',
           url: 'https://www.google.com/search?q=',
-          icon: 'https://www.google.com/favicon.ico',
+          icon: '/static/serach/google.png',
           placeholder: 'Google Search...',
         },
         {
           id: 'bing',
           name: 'Bing',
           url: 'https://www.bing.com/search?q=',
-          icon: 'https://www.bing.com/favicon.ico',
+          icon: '/static/serach/Bing.png',
           placeholder: '搜索 Bing...',
         },
         {
           id: 'duckduckgo',
           name: 'DuckDuckGo',
           url: 'https://duckduckgo.com/?q=',
-          icon: 'https://duckduckgo.com/favicon.ico',
+          icon: '/static/serach/duckduckgo.png',
           placeholder: 'Search DuckDuckGo...',
         },
       ],
@@ -108,6 +108,7 @@ export default {
     },
     selectEngine(engine) {
       this.currentEngineId = engine.id
+      localStorage.setItem('searchEngine', engine.id)
       this.showEngines = false
       this.$refs.searchInput?.focus()
     },

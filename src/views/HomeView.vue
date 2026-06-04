@@ -22,20 +22,26 @@
     <!-- 主体内容 -->
     <main class="main-content">
       <!-- 时钟问候 -->
-      <ClockGreeting :nickname="user.nickname || user.username" />
+      <ClockGreeting
+        :nickname="user.nickname || user.username"
+        :expanded="showBookmarks"
+        @click-clock="toggleBookmarks"
+        :style="!showBookmarks ? { marginTop: '15vh' } : {}"
+      />
 
       <!-- 搜索栏 -->
       <SearchBar />
 
-      <!-- 分类和书签 -->
-      <div class="bookmarks-section">
-        <div class="section-header">
-          <h2 class="section-title">我的导航</h2>
-          <button class="btn btn-primary btn-sm" @click="showAddCategory = true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            添加分类
-          </button>
-        </div>
+      <!-- 分类和书签 - 带过渡动画 -->
+      <div class="bookmarks-wrapper" :class="{ show: showBookmarks }">
+        <div class="bookmarks-section">
+          <div class="section-header">
+            <h2 class="section-title">我的导航</h2>
+            <button class="btn btn-primary btn-sm" @click="showAddCategory = true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              添加分类
+            </button>
+          </div>
 
         <CategorySection
           v-for="cat in categories"
@@ -52,6 +58,7 @@
         <div v-if="categories.length === 0 && !loading" class="empty-state fade-in">
           <div class="empty-icon">📂</div>
           <p>还没有分类，点击上方按钮创建第一个吧！</p>
+        </div>
         </div>
       </div>
     </main>
@@ -110,6 +117,7 @@ export default {
       showAddCategory: false,
       showAddBookmark: false,
       showSettings: false,
+      showBookmarks: false,
       addingBookmarkCategoryId: null,
       editingCategory: null,
       editingBookmark: null,
@@ -121,10 +129,23 @@ export default {
       return name.charAt(0).toUpperCase()
     },
   },
+  watch: {
+    showBookmarks(val) {
+      document.body.style.overflow = val ? '' : 'hidden'
+    },
+  },
   async mounted() {
     await this.loadData()
+    document.body.style.overflow = 'hidden'
+  },
+  beforeUnmount() {
+    document.body.style.overflow = ''
   },
   methods: {
+    toggleBookmarks() {
+      this.showBookmarks = !this.showBookmarks
+    },
+
     async loadData() {
       this.loading = true
       try {
@@ -302,9 +323,40 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  transition: justify-content 0.4s ease;
+}
+
+.main-content .clock-greeting,
+.main-content .search-bar-wrapper {
+  width: 100%;
+  max-width: 640px;
+}
+
+/* 导航展开/收起动画 */
+.bookmarks-wrapper {
+  width: 100%;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.bookmarks-wrapper.show {
+  max-height: 5000px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .bookmarks-section {
+  width: 100%;
   margin-top: 20px;
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="app-root" :data-theme="theme" :data-color="themeColor">
-    <div class="animated-bg" :style="bgStyle"></div>
+    <div :class="['animated-bg', { 'has-bg': bgImage }]" :style="bgStyle"></div>
     <div v-if="!bgImage" class="floating-orb"></div>
     <div v-if="!bgImage" class="floating-orb"></div>
     <div v-if="!bgImage" class="floating-orb"></div>

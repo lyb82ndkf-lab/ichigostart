@@ -1,8 +1,24 @@
 const API_BASE = '/api'
 
+function getToken() {
+  return localStorage.getItem('ichigo_token') || ''
+}
+
+function setToken(token) {
+  localStorage.setItem('ichigo_token', token)
+}
+
+function clearToken() {
+  localStorage.removeItem('ichigo_token')
+}
+
 async function request(url, options = {}) {
+  const token = getToken()
   const config = {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     credentials: 'include',
     ...options,
   }
@@ -18,12 +34,22 @@ async function request(url, options = {}) {
 }
 
 export const auth = {
-  login: (username, password) =>
-    request('/auth/login', { method: 'POST', body: { username, password } }),
-  register: (username, password, nickname) =>
-    request('/auth/register', { method: 'POST', body: { username, password, nickname } }),
-  logout: () => request('/auth/logout'),
+  login: async (username, password) => {
+    const data = await request('/auth/login', { method: 'POST', body: { username, password } })
+    if (data.token) setToken(data.token)
+    return data
+  },
+  register: async (username, password, nickname) => {
+    const data = await request('/auth/register', { method: 'POST', body: { username, password, nickname } })
+    if (data.token) setToken(data.token)
+    return data
+  },
+  logout: async () => {
+    try { await request('/auth/logout', { method: 'POST' }) } catch (e) { /* ignore */ }
+    clearToken()
+  },
   me: () => request('/auth/me'),
+  clearToken,
 }
 
 export const categories = {
@@ -47,12 +73,15 @@ export const bookmarks = {
     request(`/bookmarks/${id}`, { method: 'PUT', body: data }),
   remove: (id) =>
     request(`/bookmarks/${id}`, { method: 'DELETE' }),
+  fetchIcon: (url, signal) => request(`/bookmarks/fetch-icon?url=${encodeURIComponent(url)}`, { signal }),
   uploadIcon: async (file) => {
     const formData = new FormData()
     formData.append('icon', file)
+    const token = getToken()
     const res = await fetch(`${API_BASE}/bookmarks/upload`, {
       method: 'POST',
       credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     })
     const data = await res.json()

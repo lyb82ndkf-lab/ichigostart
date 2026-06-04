@@ -1,10 +1,10 @@
 <template>
-  <div class="clock-greeting">
+  <div class="clock-greeting" @click="$emit('click-clock')">
     <div class="greeting-text">{{ greeting }}</div>
     <div class="time-display">
       <span class="time">{{ time }}</span>
-      <span class="date">{{ date }}</span>
     </div>
+    <div class="date-display">{{ date }}</div>
   </div>
 </template>
 
@@ -13,7 +13,9 @@ export default {
   name: 'ClockGreeting',
   props: {
     nickname: { type: String, default: '' },
+    expanded: { type: Boolean, default: false },
   },
+  emits: ['click-clock'],
   data() {
     return {
       time: '',
@@ -40,7 +42,6 @@ export default {
       const weekDays = ['日', '一', '二', '三', '四', '五', '六']
       this.date = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 星期${weekDays[now.getDay()]}`
 
-      // 问候语
       let greet = ''
       if (h < 6) greet = '夜深了'
       else if (h < 9) greet = '早上好'
@@ -61,33 +62,40 @@ export default {
   text-align: center;
   margin-bottom: 32px;
   animation: fadeIn 0.6s ease-out;
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--transition-fast);
+}
+
+.clock-greeting:hover {
+  transform: scale(1.02);
 }
 
 .greeting-text {
   font-size: 28px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .time-display {
   display: flex;
-  align-items: baseline;
   justify-content: center;
-  gap: 16px;
 }
 
 .time {
-  font-size: 48px;
-  font-weight: 200;
+  font-size: 72px;
+  font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  line-height: 1;
 }
 
-.date {
-  font-size: 14px;
+.date-display {
+  font-size: 15px;
   color: var(--text-muted);
+  margin-top: 10px;
 }
 
 @media (max-width: 600px) {
@@ -95,7 +103,7 @@ export default {
     font-size: 22px;
   }
   .time {
-    font-size: 36px;
+    font-size: 52px;
   }
 }
 </style>

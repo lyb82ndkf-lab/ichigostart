@@ -27,8 +27,8 @@
             <label>网址 URL</label>
             <div class="url-input-group">
               <input class="input" v-model="form.url" placeholder="https://example.com" type="url" />
-              <button type="button" class="btn btn-secondary btn-sm" @click="autoDetectIcon" :disabled="!form.url">
-                自动获取图标
+              <button type="button" class="btn btn-secondary btn-sm" @click="autoDetectIcon" :disabled="!form.url || iconLoading">
+                {{ iconLoading ? '获取中...' : '自动获取图标' }}
               </button>
             </div>
           </div>
@@ -94,6 +94,7 @@ export default {
       },
       error: '',
       loading: false,
+      iconLoading: false,
       iconPreviewError: false,
     }
   },
@@ -145,13 +146,29 @@ export default {
       this.$emit('save', data)
     },
 
-    autoDetectIcon() {
+    async autoDetectIcon() {
+      if (!this.form.url) return
+      this.iconLoading = true
+      this.error = ''
       try {
-        const url = new URL(this.form.url)
-        // 使用 Google Favicon 服务
-        this.form.icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`
-      } catch {
-        // URL 不合法时忽略
+        const { bookmarks } = await import('../api')
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), 30000)
+        const data = await bookmarks.fetchIcon(this.form.url, controller.signal)
+        clearTimeout(timer)
+        if (data && data.url) {
+          this.form.icon = data.url
+        } else {
+          this.error = '无法获取图标，请手动上传'
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          this.error = '获取超时，请手动上传图标'
+        } else {
+          this.error = '获取图标失败: ' + (err.message || '网络错误')
+        }
+      } finally {
+        this.iconLoading = false
       }
     },
 

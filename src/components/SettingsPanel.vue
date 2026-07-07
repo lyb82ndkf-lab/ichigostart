@@ -107,6 +107,42 @@
               </label>
             </div>
           </div>
+
+          <!-- 挂件设置 -->
+          <div class="setting-section">
+            <h4 class="setting-title">挂件设置</h4>
+            <div class="setting-item-row">
+              <span class="setting-item-label">收纳挂件栏</span>
+              <el-switch
+                :model-value="widgetsCollapsedSetting"
+                @update:model-value="$emit('change-widgets-collapsed', $event)"
+              />
+            </div>
+            <div class="setting-item-row" style="margin-top: 14px;">
+              <span class="setting-item-label">挂件缩放 ({{ widgetsScale }}%)</span>
+              <el-slider
+                style="width: 150px; display: inline-block; margin-left: 10px;"
+                :model-value="widgetsScale"
+                @update:model-value="$emit('change-widgets-scale', $event)"
+                :min="70"
+                :max="130"
+                :step="5"
+                :show-tooltip="false"
+              />
+            </div>
+            <div class="setting-item-row" style="margin-top: 14px;">
+              <span class="setting-item-label">挂件宽度 ({{ widgetsWidth }}px)</span>
+              <el-slider
+                style="width: 150px; display: inline-block; margin-left: 10px;"
+                :model-value="widgetsWidth"
+                @update:model-value="$emit('change-widgets-width', $event)"
+                :min="220"
+                :max="480"
+                :step="10"
+                :show-tooltip="false"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -120,8 +156,11 @@ export default {
     currentTheme: { type: String, default: 'light' },
     currentColor: { type: String, default: 'rose' },
     bgImage: { type: String, default: '' },
+    widgetsCollapsedSetting: { type: Boolean, default: false },
+    widgetsScale: { type: Number, default: 100 },
+    widgetsWidth: { type: Number, default: 290 },
   },
-  emits: ['close', 'change-theme', 'change-color', 'change-bg'],
+  emits: ['close', 'change-theme', 'change-color', 'change-bg', 'change-widgets-collapsed', 'change-widgets-scale', 'change-widgets-width'],
   data() {
     return {
       colors: [
@@ -337,5 +376,18 @@ export default {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
+}
+
+.setting-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.setting-item-label {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 </style>

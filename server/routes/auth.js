@@ -60,6 +60,25 @@ router.post('/register', async (req, res) => {
       }
     }
 
+    // 自动为新注册用户创建默认的示例挂件
+    try {
+      const nextYear = new Date().getFullYear() + 1
+      const defaultWidgets = [
+        { type: 'countdown', title: '新年', content: `${nextYear}-01-01` },
+        { type: 'counter', title: '喝水打卡', content: '0' },
+        { type: 'note', title: '', content: '💡 提示：双击或点击便签文本可以直接编辑内容，点击右上角三个点可以进行编辑或删除。展开下方的导航书签时，这些挂件会自动隐藏哦！' }
+      ]
+      for (let i = 0; i < defaultWidgets.length; i++) {
+        await pool.execute(
+          'INSERT INTO widgets (user_id, type, title, content, sort_order) VALUES (?, ?, ?, ?, ?)',
+          [result.insertId, defaultWidgets[i].type, defaultWidgets[i].title, defaultWidgets[i].content, i]
+        )
+      }
+    } catch (widgetErr) {
+      console.error('初始化默认挂件失败:', widgetErr)
+      // 不阻断用户注册主流程
+    }
+
     const token = signToken(result.insertId, username)
     res.json({
       message: '注册成功',

@@ -32,6 +32,14 @@
       <!-- 搜索栏 -->
       <SearchBar />
 
+      <!-- 挂件区域 (在折叠导航时展示，展开时隐藏) -->
+      <WidgetsArea
+        v-if="!showBookmarks"
+        :collapsed-setting="widgetsCollapsedSetting"
+        :scale-setting="widgetsScale"
+        :width-setting="widgetsWidth"
+      />
+
       <!-- 分类和书签 - 带过渡动画 -->
       <div class="bookmarks-wrapper" :class="{ show: showBookmarks }">
         <div class="bookmarks-section">
@@ -87,10 +95,16 @@
       :current-theme="$attrs.theme || theme"
       :current-color="$attrs.themeColor || themeColor"
       :bg-image="bgImage"
+      :widgets-collapsed-setting="widgetsCollapsedSetting"
+      :widgets-scale="widgetsScale"
+      :widgets-width="widgetsWidth"
       @close="showSettings = false"
       @change-theme="$emit('change-theme', $event)"
       @change-color="$emit('change-color', $event)"
       @change-bg="$emit('change-bg', $event)"
+      @change-widgets-collapsed="$emit('change-widgets-collapsed', $event)"
+      @change-widgets-scale="$emit('change-widgets-scale', $event)"
+      @change-widgets-width="$emit('change-widgets-width', $event)"
     />
   </div>
 </template>
@@ -103,12 +117,13 @@ import CategorySection from '../components/CategorySection.vue'
 import AddCategoryModal from '../components/AddCategoryModal.vue'
 import AddBookmarkModal from '../components/AddBookmarkModal.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
+import WidgetsArea from '../components/WidgetsArea.vue'
 
 export default {
   name: 'HomeView',
-  components: { ClockGreeting, SearchBar, CategorySection, AddCategoryModal, AddBookmarkModal, SettingsPanel },
-  props: ['user', 'theme', 'themeColor', 'bgImage'],
-  emits: ['logout', 'change-theme', 'change-color', 'change-bg'],
+  components: { ClockGreeting, SearchBar, CategorySection, AddCategoryModal, AddBookmarkModal, SettingsPanel, WidgetsArea },
+  props: ['user', 'theme', 'themeColor', 'bgImage', 'widgetsCollapsedSetting', 'widgetsScale', 'widgetsWidth'],
+  emits: ['logout', 'change-theme', 'change-color', 'change-bg', 'change-widgets-collapsed', 'change-widgets-scale', 'change-widgets-width'],
   data() {
     return {
       categories: [],

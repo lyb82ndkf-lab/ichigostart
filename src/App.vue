@@ -15,10 +15,16 @@
       :theme="theme"
       :themeColor="themeColor"
       :bgImage="bgImage"
+      :widgetsCollapsedSetting="widgetsCollapsedSetting"
+      :widgetsScale="widgetsScale"
+      :widgetsWidth="widgetsWidth"
       @logout="onLogout"
       @change-theme="onChangeTheme"
       @change-color="onChangeColor"
       @change-bg="onChangeBg"
+      @change-widgets-collapsed="onChangeWidgetsCollapsed"
+      @change-widgets-scale="onChangeWidgetsScale"
+      @change-widgets-width="onChangeWidgetsWidth"
     />
   </div>
 </template>
@@ -37,6 +43,9 @@ export default {
       theme: localStorage.getItem('theme') || 'light',
       themeColor: localStorage.getItem('themeColor') || 'rose',
       bgImage: localStorage.getItem('bgImage') || '',
+      widgetsCollapsedSetting: localStorage.getItem('widgetsCollapsedSetting') === 'true',
+      widgetsScale: parseInt(localStorage.getItem('widgetsScale')) || 100,
+      widgetsWidth: parseInt(localStorage.getItem('widgetsWidth')) || 290,
     }
   },
   computed: {
@@ -54,6 +63,7 @@ export default {
   },
   async mounted() {
     this.applyTheme()
+    this.applyWidgetsSettings()
     try {
       const data = await auth.me()
       this.user = data.user
@@ -90,6 +100,29 @@ export default {
     applyTheme() {
       document.documentElement.setAttribute('data-theme', this.theme)
       document.documentElement.setAttribute('data-color', this.themeColor)
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    },
+    onChangeWidgetsCollapsed(c) {
+      this.widgetsCollapsedSetting = c
+      localStorage.setItem('widgetsCollapsedSetting', c)
+    },
+    onChangeWidgetsScale(s) {
+      this.widgetsScale = s
+      localStorage.setItem('widgetsScale', s)
+      this.applyWidgetsSettings()
+    },
+    onChangeWidgetsWidth(w) {
+      this.widgetsWidth = w
+      localStorage.setItem('widgetsWidth', w)
+      this.applyWidgetsSettings()
+    },
+    applyWidgetsSettings() {
+      document.documentElement.style.setProperty('--widget-scale', this.widgetsScale / 100)
+      document.documentElement.style.setProperty('--widget-width', this.widgetsWidth + 'px')
     },
   },
 }

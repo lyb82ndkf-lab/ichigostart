@@ -5,11 +5,11 @@ module.exports = defineConfig({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:6666',
+        target: 'http://localhost:4006',
         changeOrigin: true
       },
       '/uploads': {
-        target: 'http://localhost:6666',
+        target: 'http://localhost:4006',
         changeOrigin: true
       }
     }

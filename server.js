@@ -23,6 +23,7 @@ const { initDatabase } = require('./server/db')
 const authRoutes = require('./server/routes/auth')
 const categoryRoutes = require('./server/routes/categories')
 const bookmarkRoutes = require('./server/routes/bookmarks')
+const widgetRoutes = require('./server/routes/widgets')
 
 const app = express()
 const PORT = process.env.PORT || 4006
@@ -185,6 +186,7 @@ app.get('/api/bookmarks/fetch-icon', async (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/bookmarks', bookmarkRoutes)
+app.use('/api/widgets', widgetRoutes)
 app.use(express.static(path.join(__dirname, 'dist')))
 
 app.get('*', (req, res) => {

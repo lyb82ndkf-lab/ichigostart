@@ -89,3 +89,10 @@ export const bookmarks = {
     return data
   },
 }
+
+export const widgets = {
+  list: () => request('/widgets'),
+  create: (data) => request('/widgets', { method: 'POST', body: data }),
+  update: (id, data) => request(`/widgets/${id}`, { method: 'PUT', body: data }),
+  remove: (id) => request(`/widgets/${id}`, { method: 'DELETE' }),
+}

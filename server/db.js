@@ -52,6 +52,28 @@ async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `)
 
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS widgets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        title VARCHAR(100) DEFAULT '',
+        content TEXT,
+        position VARCHAR(50) DEFAULT 'right',
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `)
+
+    // 数据库字段升级
+    try {
+      await conn.execute('ALTER TABLE widgets ADD COLUMN position VARCHAR(50) DEFAULT "right"')
+      console.log('💡 数据库表升级: 成功为 widgets 添加 position 字段')
+    } catch (e) {
+      // 字段已存在，忽略错误
+    }
+
     console.log('✅ 数据库初始化完成')
   } finally {
     conn.release()
